@@ -1,5 +1,6 @@
 import React, { Component } from 'react';
 import TwitterLogin from 'react-twitter-auth';
+import axios from "axios";
 
 class App extends Component {
 
@@ -29,17 +30,9 @@ class App extends Component {
   render() {
     let content = !!this.state.isAuthenticated ?
       (
-        <div>
-          <p>Authenticated</p>
-          <div>
-            {this.state.user.email}
-          </div>
-          <div>
-            <button onClick={this.logout} className="button" >
-              Log out
-            </button>
-          </div>
-        </div>
+        <PostForm user={this.state.user} 
+          token={this.state.token} 
+          logout={this.logout} />
       ) :
       (
         <TwitterLogin loginUrl="http://localhost:4000/api/v1/auth/twitter"
@@ -52,6 +45,53 @@ class App extends Component {
         {content}
       </div>
     );
+  }
+}
+
+class PostForm extends Component {
+  constructor(props){
+    super(props);
+
+    this.state = { value: '' };
+  }
+  handleChange = (event) => {
+    this.setState({ value: event.target.value})
+  }
+
+  handleSubmit = (event) => {
+    event.preventDefault();
+    console.log("Submit to API", this.state.value);
+    // set x-auth-token request header with value from this.props.token
+    // submit
+    axios({
+      method: 'post',
+      url: 'http://localhost:4000/api/v1/tweets',
+      headers: {'x-auth-token': this.props.token}
+    }).then((response) => {
+      console.log("Response status: ", response.status);
+    });
+  }
+
+  render(){
+    console.log(this.props.user);
+    return (<div>
+          <p>Form</p>
+          <div>
+            <button onClick={this.props.logout} className="button" >
+              Log out
+            </button>
+          </div>
+
+            <form onSubmit={this.handleSubmit}>
+              <label>
+                Text:
+                <input type="text" value={this.state.value} 
+                  onChange={this.handleChange} />
+              </label>
+              <input type="submit" value="Tweet" />
+            </form>
+
+        </div>);
   }
 }
 

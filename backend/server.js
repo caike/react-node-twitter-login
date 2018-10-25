@@ -153,6 +153,12 @@ var getOne = function (req, res) {
 router.route('/auth/me')
   .get(authenticate, getCurrentUser, getOne);
 
+router.route('/tweets')
+  .post(authenticate, getCurrentUser, (req, res) => {
+    console.log("post to twitter");
+    res.sendStatus(201);
+  })
+
 app.use('/api/v1', router);
 
 app.listen(4000);
