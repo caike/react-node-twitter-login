@@ -60,13 +60,16 @@ class PostForm extends Component {
 
   handleSubmit = (event) => {
     event.preventDefault();
-    console.log("Submit to API", this.state.value);
-    // set x-auth-token request header with value from this.props.token
-    // submit
+
+    console.log("Submitting to API", this.state.value);
+
     axios({
       method: 'post',
+      headers: {'x-auth-token': this.props.token},
       url: 'http://localhost:4000/api/v1/tweets',
-      headers: {'x-auth-token': this.props.token}
+      data: {
+        status: this.state.value
+      }
     }).then((response) => {
       console.log("Response status: ", response.status);
     });

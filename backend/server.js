@@ -131,7 +131,7 @@ var authenticate = expressJwt({
 });
 
 var getCurrentUser = function(req, res, next) {
-  User.findById(req.auth.id, function(err, user) {
+  User.findById(req.auth.id, 'email twitterProvider', function(err, user) {
     if (err) {
       next(err);
     } else {
@@ -141,6 +141,7 @@ var getCurrentUser = function(req, res, next) {
   });
 };
 
+/*
 var getOne = function (req, res) {
   var user = req.user.toObject();
 
@@ -152,11 +153,32 @@ var getOne = function (req, res) {
 
 router.route('/auth/me')
   .get(authenticate, getCurrentUser, getOne);
+*/
 
 router.route('/tweets')
   .post(authenticate, getCurrentUser, (req, res) => {
-    console.log("post to twitter");
-    res.sendStatus(201);
+    const currentUser = req.user.toObject();
+    console.log("req.body: ", req.body);
+    console.log("req.body.status: ", req.body.status);
+
+    const status = req.body.status;
+
+    request.post({
+      url: `https://api.twitter.com/1.1/statuses/update.json`,
+      form: { status: `From API: ${status}`},
+      oauth: {
+        consumer_key: twitterConfig.consumerKey,
+        consumer_secret: twitterConfig.consumerSecret,
+        token: currentUser.twitterProvider.token,
+        token_secret: currentUser.twitterProvider.tokenSecret
+      },
+    }, function (err, r, body) {
+      if (err) {
+        return res.send(500, { message: err.message });
+      }
+
+      res.sendStatus(201);
+    });
   })
 
 app.use('/api/v1', router);
